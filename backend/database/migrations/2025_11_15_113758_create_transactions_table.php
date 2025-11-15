@@ -6,20 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('item_id')->constrained('items')->onDelete('cascade');
+            $table->enum('jenis_transaksi', ['masuk', 'keluar']);
+            $table->date('tanggal_transaksi');
+            $table->integer('jumlah');
+            $table->text('keterangan')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('transactions');
