@@ -40,7 +40,7 @@ class TransactionModelTest extends TestCase
     public function test_casts_are_correct()
     {
         $transaction = new Transaction();
-        $expected = ['tanggal_transaksi' => 'date', 'jumlah' => 'integer'];
+        $expected = ['id' => 'int', 'tanggal_transaksi' => 'date', 'jumlah' => 'integer'];
         
         $this->assertEquals($expected, $transaction->getCasts());
     }

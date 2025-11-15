@@ -30,7 +30,7 @@ class ItemModelTest extends TestCase
 
     public function test_stock_calculation_method_works()
     {
-        $item = Item::factory()->create();
+        $item = Item::factory()->create(['stock' => 0]);
         
         Transaction::factory()->create([
             'item_id' => $item->id,
@@ -50,7 +50,7 @@ class ItemModelTest extends TestCase
     public function test_casts_are_correct()
     {
         $item = new Item();
-        $expected = ['stock' => 'integer'];
+        $expected = ['id' => 'int', 'stock' => 'integer'];
         
         $this->assertEquals($expected, $item->getCasts());
     }
