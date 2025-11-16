@@ -8,9 +8,22 @@ use Illuminate\Http\Request;
 
 class ItemController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Item::all();
+        $query = Item::query();
+        
+        // Sorting
+        $sortBy = $request->get('sort_by', 'id');
+        $sortOrder = $request->get('sort_order', 'asc');
+        
+        if (in_array($sortBy, ['id', 'kode_barang', 'nama_barang', 'satuan', 'stock'])) {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+        
+        // Pagination
+        $perPage = $request->get('per_page', 10);
+        
+        return $query->paginate($perPage);
     }
 
     public function store(Request $request)
@@ -22,7 +35,10 @@ class ItemController extends Controller
             'stock' => 'required|integer|min:0'
         ]);
 
-        $item = Item::create($request->all());
+        $data = $request->all();
+        $data['satuan'] = strtolower($data['satuan']);
+        
+        $item = Item::create($data);
         return response()->json($item, 201);
     }
 
@@ -40,7 +56,10 @@ class ItemController extends Controller
             'stock' => 'required|integer|min:0'
         ]);
 
-        $item->update($request->all());
+        $data = $request->all();
+        $data['satuan'] = strtolower($data['satuan']);
+        
+        $item->update($data);
         return $item;
     }
 
@@ -48,5 +67,39 @@ class ItemController extends Controller
     {
         $item->delete();
         return response()->json(null, 204);
+    }
+    
+    public function getNextCode()
+    {
+        $lastItem = Item::orderBy('kode_barang', 'desc')->first();
+        
+        if (!$lastItem) {
+            return response()->json(['code' => 'BRG001']);
+        }
+        
+        $lastCode = $lastItem->kode_barang;
+        $number = (int) substr($lastCode, 3);
+        $nextNumber = $number + 1;
+        $nextCode = 'BRG' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        
+        return response()->json(['code' => $nextCode]);
+    }
+    
+    public function checkTransactions(Item $item)
+    {
+        $hasTransactions = $item->transactions()->exists();
+        return response()->json(['has_transactions' => $hasTransactions]);
+    }
+    
+    public function getUnits()
+    {
+        $units = Item::select('satuan')
+            ->distinct()
+            ->whereNotNull('satuan')
+            ->where('satuan', '!=', '')
+            ->orderBy('satuan')
+            ->pluck('satuan');
+            
+        return response()->json(['units' => $units]);
     }
 }
