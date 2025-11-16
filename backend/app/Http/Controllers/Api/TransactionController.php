@@ -13,6 +13,15 @@ class TransactionController extends Controller
     {
         $query = Transaction::with('item');
         
+        // Search
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->whereHas('item', function($q) use ($search) {
+                $q->where('kode_barang', 'like', "%{$search}%")
+                  ->orWhere('nama_barang', 'like', "%{$search}%");
+            })->orWhere('keterangan', 'like', "%{$search}%");
+        }
+        
         // Filter by jenis_transaksi
         if ($request->has('jenis_transaksi')) {
             $query->where('jenis_transaksi', $request->jenis_transaksi);

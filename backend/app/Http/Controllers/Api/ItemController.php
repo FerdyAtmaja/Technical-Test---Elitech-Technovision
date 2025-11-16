@@ -12,6 +12,16 @@ class ItemController extends Controller
     {
         $query = Item::query();
         
+        // Search
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('kode_barang', 'like', "%{$search}%")
+                  ->orWhere('nama_barang', 'like', "%{$search}%")
+                  ->orWhere('satuan', 'like', "%{$search}%");
+            });
+        }
+        
         // Sorting
         $sortBy = $request->get('sort_by', 'id');
         $sortOrder = $request->get('sort_order', 'asc');

@@ -1,16 +1,28 @@
 <template>
   <div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Barang Masuk</h1>
-      <button 
-        @click="openModal()"
-        class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
-        Tambah Barang Masuk
-      </button>
+    <div class="mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold text-gray-900">Barang Masuk</h1>
+        <button 
+          @click="openModal()"
+          class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Tambah Barang Masuk
+        </button>
+      </div>
+      
+      <div class="mb-4">
+        <input 
+          v-model="searchQuery"
+          @input="debounceSearch"
+          type="text" 
+          placeholder="Cari kode barang, nama barang, atau keterangan..."
+          class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+      </div>
     </div>
 
     <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -185,12 +197,25 @@
       :message="notification.message"
       @close="closeNotification"
     />
+    
+    <ConfirmationModal
+      :show="showActionConfirmation"
+      :title="confirmationType === 'cancel' ? 'Konfirmasi Batalkan Transaksi' : 'Konfirmasi Pulihkan Transaksi'"
+      :message="confirmationType === 'cancel' ? 'Apakah Anda yakin ingin membatalkan transaksi ini? Stok akan dikembalikan.' : 'Apakah Anda yakin ingin memulihkan transaksi ini? Stok akan disesuaikan kembali.'"
+      :data="selectedTransaction"
+      :type="confirmationType"
+      :confirm-text="confirmationType === 'cancel' ? 'Batalkan' : 'Pulihkan'"
+      :items="items"
+      @confirm="confirmAction"
+      @cancel="cancelAction"
+    />
   </div>
 </template>
 
 <script>
 import TransactionModal from '@/components/TransactionModal.vue'
 import NotificationModal from '@/components/NotificationModal.vue'
+import ConfirmationModal from '@/components/ConfirmationModal.vue'
 import transactionService from '@/services/transactionService.js'
 import itemService from '@/services/itemService.js'
 
@@ -198,7 +223,8 @@ export default {
   name: 'ItemsInView',
   components: {
     TransactionModal,
-    NotificationModal
+    NotificationModal,
+    ConfirmationModal
   },
   data() {
     return {
@@ -221,7 +247,12 @@ export default {
         type: 'success',
         title: '',
         message: ''
-      }
+      },
+      searchQuery: '',
+      searchTimeout: null,
+      showActionConfirmation: false,
+      selectedTransaction: null,
+      confirmationType: null
     }
   },
   async mounted() {
@@ -237,7 +268,8 @@ export default {
           per_page: this.pagination.per_page,
           sort_by: this.sorting.sort_by,
           sort_order: this.sorting.sort_order,
-          jenis_transaksi: 'masuk'
+          jenis_transaksi: 'masuk',
+          search: this.searchQuery
         }
         
         const response = await transactionService.getAll(params)
@@ -285,31 +317,43 @@ export default {
       }
     },
     
-    async cancelTransaction(transaction) {
-      if (confirm(`Apakah Anda yakin ingin membatalkan transaksi ini? Stok akan dikembalikan.`)) {
-        try {
-          await transactionService.cancel(transaction.id)
+    cancelTransaction(transaction) {
+      this.selectedTransaction = transaction
+      this.confirmationType = 'cancel'
+      this.showActionConfirmation = true
+    },
+    
+    restoreTransaction(transaction) {
+      this.selectedTransaction = transaction
+      this.confirmationType = 'restore'
+      this.showActionConfirmation = true
+    },
+    
+    async confirmAction() {
+      try {
+        if (this.confirmationType === 'cancel') {
+          await transactionService.cancel(this.selectedTransaction.id)
           this.showNotification('success', 'Berhasil', 'Transaksi berhasil dibatalkan dan stok telah dikembalikan')
-          await this.fetchTransactions()
-        } catch (error) {
-          console.error('Error canceling transaction:', error)
-          this.showNotification('error', 'Gagal', 'Gagal membatalkan transaksi')
+        } else if (this.confirmationType === 'restore') {
+          await transactionService.restore(this.selectedTransaction.id)
+          this.showNotification('success', 'Berhasil', 'Transaksi berhasil dipulihkan')
         }
+        await this.fetchTransactions()
+      } catch (error) {
+        console.error('Error with transaction action:', error)
+        const message = error.response?.data?.message || `Gagal ${this.confirmationType === 'cancel' ? 'membatalkan' : 'memulihkan'} transaksi`
+        this.showNotification('error', 'Gagal', message)
+      } finally {
+        this.showActionConfirmation = false
+        this.selectedTransaction = null
+        this.confirmationType = null
       }
     },
     
-    async restoreTransaction(transaction) {
-      if (confirm(`Apakah Anda yakin ingin memulihkan transaksi ini? Stok akan disesuaikan kembali.`)) {
-        try {
-          await transactionService.restore(transaction.id)
-          this.showNotification('success', 'Berhasil', 'Transaksi berhasil dipulihkan')
-          await this.fetchTransactions()
-        } catch (error) {
-          console.error('Error restoring transaction:', error)
-          const message = error.response?.data?.message || 'Gagal memulihkan transaksi'
-          this.showNotification('error', 'Gagal', message)
-        }
-      }
+    cancelAction() {
+      this.showActionConfirmation = false
+      this.selectedTransaction = null
+      this.confirmationType = null
     },
     
     getStatusText(status) {
@@ -346,6 +390,13 @@ export default {
         return `Transaksi sudah ${diffDays} hari, aksi terbatas`
       }
       return transaction.status === 'dibatalkan' ? 'Pulihkan Transaksi' : 'Batalkan Transaksi'
+    },
+    
+    debounceSearch() {
+      clearTimeout(this.searchTimeout)
+      this.searchTimeout = setTimeout(() => {
+        this.fetchTransactions(1)
+      }, 500)
     },
     
     sortBy(column) {

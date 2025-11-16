@@ -92,12 +92,29 @@
         </div>
       </form>
     </div>
+    
+    <!-- Confirmation Modal -->
+    <ConfirmationModal
+      :show="showConfirmation"
+      :title="'Konfirmasi Transaksi ' + (type === 'masuk' ? 'Barang Masuk' : 'Barang Keluar')"
+      :message="'Apakah Anda yakin ingin menyimpan transaksi ini?'"
+      :data="getDisplayData()"
+      :type="'create'"
+      :confirm-text="'Simpan'"
+      @confirm="confirmSave"
+      @cancel="cancelSave"
+    />
   </div>
 </template>
 
 <script>
+import ConfirmationModal from './ConfirmationModal.vue'
+
 export default {
   name: 'TransactionModal',
+  components: {
+    ConfirmationModal
+  },
   props: {
     show: Boolean,
     items: Array,
@@ -117,7 +134,8 @@ export default {
         keterangan: ''
       },
       selectedItem: null,
-      dateInterval: null
+      dateInterval: null,
+      showConfirmation: false
     }
   },
   computed: {
@@ -156,7 +174,16 @@ export default {
   },
   methods: {
     handleSubmit() {
+      this.showConfirmation = true
+    },
+    
+    confirmSave() {
       this.$emit('save', { ...this.form })
+      this.showConfirmation = false
+    },
+    
+    cancelSave() {
+      this.showConfirmation = false
     },
     resetForm() {
       this.form = {
@@ -179,6 +206,17 @@ export default {
       const numValue = value ? parseInt(value) : 0
       this.form.jumlah = numValue > 0 ? numValue : 0
       event.target.value = this.form.jumlah || ''
+    },
+    
+    getDisplayData() {
+      const itemName = this.selectedItem ? `${this.selectedItem.kode_barang} - ${this.selectedItem.nama_barang}` : 'Pilih Barang'
+      return {
+        'Barang': itemName,
+        'Jenis Transaksi': this.form.jenis_transaksi === 'masuk' ? 'Barang Masuk' : 'Barang Keluar',
+        'Tanggal': this.form.tanggal_transaksi,
+        'Jumlah': this.form.jumlah,
+        'Keterangan': this.form.keterangan || '-'
+      }
     }
   }
 }

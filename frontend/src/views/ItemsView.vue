@@ -1,16 +1,28 @@
 <template>
   <div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Master Barang</h1>
-      <button 
-        @click="openModal()"
-        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
-        Tambah Barang
-      </button>
+    <div class="mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold text-gray-900">Master Barang</h1>
+        <button 
+          @click="openModal()"
+          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Tambah Barang
+        </button>
+      </div>
+      
+      <div class="mb-4">
+        <input 
+          v-model="searchQuery"
+          @input="debounceSearch"
+          type="text" 
+          placeholder="Cari kode barang, nama barang, atau satuan..."
+          class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+      </div>
     </div>
 
     <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -190,19 +202,32 @@
       :message="notification.message"
       @close="closeNotification"
     />
+    
+    <ConfirmationModal
+      :show="showDeleteConfirmation"
+      title="Konfirmasi Hapus Barang"
+      :message="`Apakah Anda yakin ingin menghapus barang ini?`"
+      :data="selectedItem"
+      type="delete"
+      confirm-text="Hapus"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete"
+    />
   </div>
 </template>
 
 <script>
 import ItemModal from '@/components/ItemModal.vue'
 import NotificationModal from '@/components/NotificationModal.vue'
+import ConfirmationModal from '@/components/ConfirmationModal.vue'
 import itemService from '@/services/itemService.js'
 
 export default {
   name: 'ItemsView',
   components: {
     ItemModal,
-    NotificationModal
+    NotificationModal,
+    ConfirmationModal
   },
   data() {
     return {
@@ -227,7 +252,10 @@ export default {
         type: 'success',
         title: '',
         message: ''
-      }
+      },
+      searchQuery: '',
+      searchTimeout: null,
+      showDeleteConfirmation: false
     }
   },
   async mounted() {
@@ -241,7 +269,8 @@ export default {
           page,
           per_page: this.pagination.per_page,
           sort_by: this.sorting.sort_by,
-          sort_order: this.sorting.sort_order
+          sort_order: this.sorting.sort_order,
+          search: this.searchQuery
         }
         
         const response = await itemService.getAll(params)
@@ -290,17 +319,28 @@ export default {
       }
     },
     
-    async deleteItem(item) {
-      if (confirm(`Apakah Anda yakin ingin menghapus barang "${item.nama_barang}"?`)) {
-        try {
-          await itemService.delete(item.id)
-          this.showNotification('success', 'Berhasil', 'Barang berhasil dihapus')
-          await this.fetchItems()
-        } catch (error) {
-          console.error('Error deleting item:', error)
-          this.showNotification('error', 'Gagal', 'Gagal menghapus barang')
-        }
+    deleteItem(item) {
+      this.selectedItem = item
+      this.showDeleteConfirmation = true
+    },
+    
+    async confirmDelete() {
+      try {
+        await itemService.delete(this.selectedItem.id)
+        this.showNotification('success', 'Berhasil', 'Barang berhasil dihapus')
+        await this.fetchItems()
+      } catch (error) {
+        console.error('Error deleting item:', error)
+        this.showNotification('error', 'Gagal', 'Gagal menghapus barang')
+      } finally {
+        this.showDeleteConfirmation = false
+        this.selectedItem = null
       }
+    },
+    
+    cancelDelete() {
+      this.showDeleteConfirmation = false
+      this.selectedItem = null
     },
     
     sortBy(column) {
@@ -353,6 +393,13 @@ export default {
     
     closeNotification() {
       this.notification.show = false
+    },
+    
+    debounceSearch() {
+      clearTimeout(this.searchTimeout)
+      this.searchTimeout = setTimeout(() => {
+        this.fetchItems(1)
+      }, 500)
     }
   }
 }

@@ -109,12 +109,29 @@
         </div>
       </form>
     </div>
+    
+    <!-- Confirmation Modal -->
+    <ConfirmationModal
+      :show="showConfirmation"
+      :title="isEdit ? 'Konfirmasi Edit Barang' : 'Konfirmasi Tambah Barang'"
+      :message="isEdit ? 'Apakah Anda yakin ingin mengupdate barang ini?' : 'Apakah Anda yakin ingin menambahkan barang ini?'"
+      :data="form"
+      :type="isEdit ? 'update' : 'create'"
+      :confirm-text="isEdit ? 'Update' : 'Simpan'"
+      @confirm="confirmSave"
+      @cancel="cancelSave"
+    />
   </div>
 </template>
 
 <script>
+import ConfirmationModal from './ConfirmationModal.vue'
+
 export default {
   name: 'ItemModal',
+  components: {
+    ConfirmationModal
+  },
   props: {
     show: Boolean,
     item: Object,
@@ -133,7 +150,8 @@ export default {
       loading: false,
       availableUnits: [],
       showCustomUnit: false,
-      showTooltip: false
+      showTooltip: false,
+      showConfirmation: false
     }
   },
   computed: {
@@ -170,7 +188,16 @@ export default {
   },
   methods: {
     handleSubmit() {
+      this.showConfirmation = true
+    },
+    
+    confirmSave() {
       this.$emit('save', { ...this.form })
+      this.showConfirmation = false
+    },
+    
+    cancelSave() {
+      this.showConfirmation = false
     },
     resetForm() {
       this.form = {
