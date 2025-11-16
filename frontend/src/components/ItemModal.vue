@@ -220,7 +220,9 @@ export default {
     },
     onStockInput(event) {
       const value = event.target.value.replace(/[^0-9]/g, '')
-      this.form.stock = value ? parseInt(value) : 0
+      const numValue = value ? parseInt(value) : 0
+      this.form.stock = numValue >= 0 ? numValue : 0
+      event.target.value = this.form.stock
     },
     onSatuanInput(event) {
       this.form.satuan = event.target.value.toLowerCase()
