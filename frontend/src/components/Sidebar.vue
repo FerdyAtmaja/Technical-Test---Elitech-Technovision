@@ -2,7 +2,9 @@
   <aside class="fixed top-0 left-0 z-40 h-screen transition-all duration-300" :class="isCollapsed ? 'w-[70px]' : 'w-64'" style="background: #0E1F34;">
     <div class="p-5 border-b border-white/10">
       <div class="flex items-center gap-3">
-        <span class="text-2xl min-w-[24px]">📦</span>
+        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center min-w-[32px]">
+          <span class="text-white text-lg font-bold">IA</span>
+        </div>
         <span v-show="!isCollapsed" class="text-white text-lg font-bold whitespace-nowrap">InventoryApp</span>
       </div>
     </div>

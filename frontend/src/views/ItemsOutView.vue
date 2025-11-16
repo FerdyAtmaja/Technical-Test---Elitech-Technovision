@@ -290,7 +290,7 @@ export default {
     
     async fetchItems() {
       try {
-        const response = await itemService.getAll({ per_page: 1000 })
+        const response = await itemService.getAllForTransaction()
         this.items = response.data.data
       } catch (error) {
         console.error('Error fetching items:', error)

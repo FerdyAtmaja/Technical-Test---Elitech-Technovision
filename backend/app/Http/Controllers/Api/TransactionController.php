@@ -57,9 +57,15 @@ class TransactionController extends Controller
             $item = Item::find($request->item_id);
             $currentStock = $item->getCurrentStock();
             
+            if ($currentStock <= 0) {
+                return response()->json([
+                    'message' => 'Stok habis untuk barang: ' . $item->nama_barang
+                ], 422);
+            }
+            
             if ($request->jumlah > $currentStock) {
                 return response()->json([
-                    'message' => 'Stok tidak mencukupi. Stok tersedia: ' . $currentStock
+                    'message' => 'Stok tidak mencukupi. Stok tersedia: ' . $currentStock . ' ' . $item->satuan
                 ], 422);
             }
         }
@@ -86,6 +92,23 @@ class TransactionController extends Controller
             'keterangan' => 'nullable|string|max:500',
             'status' => 'nullable|in:aktif,dibatalkan,restored'
         ]);
+
+        // Validasi stok untuk update transaksi keluar
+        if ($request->jenis_transaksi === 'keluar') {
+            $item = Item::find($request->item_id);
+            $currentStock = $item->getCurrentStock();
+            
+            // Tambahkan kembali jumlah transaksi lama jika transaksi keluar
+            if ($transaction->jenis_transaksi === 'keluar' && $transaction->item_id == $request->item_id) {
+                $currentStock += $transaction->jumlah;
+            }
+            
+            if ($request->jumlah > $currentStock) {
+                return response()->json([
+                    'message' => 'Stok tidak mencukupi. Stok tersedia: ' . $currentStock . ' ' . $item->satuan
+                ], 422);
+            }
+        }
 
         $transaction->update($request->all());
         return $transaction->load('item');

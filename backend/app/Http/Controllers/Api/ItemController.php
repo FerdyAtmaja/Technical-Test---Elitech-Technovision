@@ -32,8 +32,15 @@ class ItemController extends Controller
         
         // Pagination
         $perPage = $request->get('per_page', 10);
+        $items = $query->paginate($perPage);
         
-        return $query->paginate($perPage);
+        // Add current_stock to each item
+        $items->getCollection()->transform(function ($item) {
+            $item->current_stock = $item->getCurrentStock();
+            return $item;
+        });
+        
+        return $items;
     }
 
     public function store(Request $request)

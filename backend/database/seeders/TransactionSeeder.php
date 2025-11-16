@@ -13,6 +13,19 @@ class TransactionSeeder extends Seeder
         $items = Item::all();
         
         if ($items->count() > 0) {
+            // Catat stock awal sebagai transaksi masuk
+            foreach ($items as $item) {
+                if ($item->stock > 0) {
+                    Transaction::create([
+                        'item_id' => $item->id,
+                        'jenis_transaksi' => 'masuk',
+                        'tanggal_transaksi' => now()->subDays(100),
+                        'jumlah' => $item->stock,
+                        'keterangan' => 'Stock Awal'
+                    ]);
+                }
+            }
+            
             // Buat banyak transaksi masuk untuk semua item
             foreach ($items as $item) {
                 for ($i = 0; $i < rand(3, 6); $i++) {

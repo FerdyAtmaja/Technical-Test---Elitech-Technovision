@@ -18,7 +18,7 @@
             </option>
           </select>
           <div v-if="selectedItem && type === 'keluar'" class="mt-2 text-sm text-gray-600">
-            Stok tersedia: <span class="font-medium text-blue-600">{{ selectedItem.stock }}</span> {{ selectedItem.satuan }}
+            Stok tersedia: <span class="font-medium text-blue-600">{{ selectedItem.current_stock }}</span> {{ selectedItem.satuan }}
           </div>
         </div>
         
@@ -53,7 +53,7 @@
                 Sisa stok setelah keluar: <span class="font-medium">{{ remainingStock }}</span> {{ selectedItem.satuan }}
               </span>
               <span v-else class="text-red-600 font-medium">
-                ⚠️ Jumlah melebihi stok tersedia! Kekurangan: {{ form.jumlah - selectedItem.stock }} {{ selectedItem.satuan }}
+                ⚠️ Jumlah melebihi stok tersedia! Kekurangan: {{ form.jumlah - selectedItem.current_stock }} {{ selectedItem.satuan }}
               </span>
             </div>
           </div>
@@ -143,11 +143,11 @@ export default {
       return this.type === 'masuk' ? 'Tambah Barang Masuk' : 'Tambah Barang Keluar'
     },
     isStockExceeded() {
-      return this.type === 'keluar' && this.selectedItem && this.form.jumlah > this.selectedItem.stock
+      return this.type === 'keluar' && this.selectedItem && this.form.jumlah > this.selectedItem.current_stock
     },
     remainingStock() {
       if (!this.selectedItem || this.type !== 'keluar') return 0
-      return Math.max(0, this.selectedItem.stock - this.form.jumlah)
+      return Math.max(0, this.selectedItem.current_stock - this.form.jumlah)
     }
   },
   watch: {
