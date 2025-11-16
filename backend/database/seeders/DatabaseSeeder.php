@@ -9,12 +9,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@warehouse.com',
-        ]);
-
         $this->call([
+            UserSeeder::class,
             ItemSeeder::class,
             TransactionSeeder::class,
         ]);
