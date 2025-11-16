@@ -100,11 +100,18 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div v-if="!canPerformAction(transaction)" class="relative group">
+                  <div class="w-4 h-4 bg-gray-400 rounded-full cursor-not-allowed"></div>
+                  <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 pointer-events-none">
+                    {{ getActionTooltip(transaction) }}
+                    <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                  </div>
+                </div>
                 <button 
-                  v-if="transaction.status === 'dibatalkan'"
+                  v-else-if="transaction.status === 'dibatalkan'"
                   @click="restoreTransaction(transaction)"
                   class="text-green-600 hover:text-green-900"
-                  title="Pulihkan Transaksi"
+                  :title="getActionTooltip(transaction)"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -114,7 +121,7 @@
                   v-else
                   @click="cancelTransaction(transaction)"
                   class="text-orange-600 hover:text-orange-900"
-                  title="Batalkan Transaksi"
+                  :title="getActionTooltip(transaction)"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -312,6 +319,33 @@ export default {
         'restored': 'Dipulihkan'
       }
       return statusMap[status] || 'Aktif'
+    },
+    
+    canPerformAction(transaction) {
+      const transactionDate = new Date(transaction.tanggal_transaksi)
+      const now = new Date()
+      const diffDays = Math.floor((now - transactionDate) / (1000 * 60 * 60 * 24))
+      return diffDays <= 7
+    },
+    
+    isActionLimited(transaction) {
+      const transactionDate = new Date(transaction.tanggal_transaksi)
+      const now = new Date()
+      const diffDays = Math.floor((now - transactionDate) / (1000 * 60 * 60 * 24))
+      return diffDays > 3 && diffDays <= 7
+    },
+    
+    getActionTooltip(transaction) {
+      const transactionDate = new Date(transaction.tanggal_transaksi)
+      const now = new Date()
+      const diffDays = Math.floor((now - transactionDate) / (1000 * 60 * 60 * 24))
+      
+      if (diffDays > 7) {
+        return 'Aksi tidak dapat dilakukan setelah 7 hari'
+      } else if (diffDays > 3) {
+        return `Transaksi sudah ${diffDays} hari, aksi terbatas`
+      }
+      return transaction.status === 'dibatalkan' ? 'Pulihkan Transaksi' : 'Batalkan Transaksi'
     },
     
     sortBy(column) {
