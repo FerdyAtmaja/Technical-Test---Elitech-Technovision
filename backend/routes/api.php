@@ -16,6 +16,8 @@ Route::middleware(['throttle:api'])->group(function () {
     Route::get('items-next-code', [ItemController::class, 'getNextCode']);
     Route::get('items-units', [ItemController::class, 'getUnits']);
     Route::apiResource('transactions', TransactionController::class);
+    Route::patch('transactions/{transaction}/cancel', [TransactionController::class, 'cancel']);
+    Route::patch('transactions/{transaction}/restore', [TransactionController::class, 'restore']);
     Route::get('reports/stock', [ReportController::class, 'stockReport']);
 });
 

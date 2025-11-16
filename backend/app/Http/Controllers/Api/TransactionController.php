@@ -39,7 +39,8 @@ class TransactionController extends Controller
             'jenis_transaksi' => 'required|in:masuk,keluar',
             'tanggal_transaksi' => 'required|date',
             'jumlah' => 'required|integer|min:1',
-            'keterangan' => 'nullable|string|max:500'
+            'keterangan' => 'nullable|string|max:500',
+            'status' => 'nullable|in:aktif,dibatalkan,restored'
         ]);
 
         // Validasi stok untuk transaksi keluar
@@ -54,7 +55,10 @@ class TransactionController extends Controller
             }
         }
 
-        $transaction = Transaction::create($request->all());
+        $data = $request->all();
+        $data['status'] = $data['status'] ?? 'aktif';
+        
+        $transaction = Transaction::create($data);
         return response()->json($transaction->load('item'), 201);
     }
 
@@ -70,7 +74,8 @@ class TransactionController extends Controller
             'jenis_transaksi' => 'required|in:masuk,keluar',
             'tanggal_transaksi' => 'required|date',
             'jumlah' => 'required|integer|min:1',
-            'keterangan' => 'nullable|string|max:500'
+            'keterangan' => 'nullable|string|max:500',
+            'status' => 'nullable|in:aktif,dibatalkan,restored'
         ]);
 
         $transaction->update($request->all());
@@ -81,5 +86,43 @@ class TransactionController extends Controller
     {
         $transaction->delete();
         return response()->json(null, 204);
+    }
+
+    public function cancel(Transaction $transaction)
+    {
+        if ($transaction->status === 'dibatalkan') {
+            return response()->json([
+                'message' => 'Transaksi sudah dibatalkan'
+            ], 422);
+        }
+
+        $transaction->cancel();
+        
+        return response()->json([
+            'message' => 'Transaksi berhasil dibatalkan',
+            'data' => $transaction->load('item')
+        ]);
+    }
+
+    public function restore(Transaction $transaction)
+    {
+        if ($transaction->status === 'aktif' || $transaction->status === 'restored') {
+            return response()->json([
+                'message' => 'Transaksi sudah aktif'
+            ], 422);
+        }
+
+        try {
+            $transaction->restore();
+            
+            return response()->json([
+                'message' => 'Transaksi berhasil dipulihkan',
+                'data' => $transaction->load('item')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 422);
+        }
     }
 }

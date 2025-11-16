@@ -17,5 +17,13 @@ export default {
   
   delete(id) {
     return axios.delete(`${API_URL}/transactions/${id}`)
+  },
+  
+  cancel(id) {
+    return axios.patch(`${API_URL}/transactions/${id}/cancel`)
+  },
+  
+  restore(id) {
+    return axios.patch(`${API_URL}/transactions/${id}/restore`)
   }
 }

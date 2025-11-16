@@ -72,15 +72,16 @@
                 </div>
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr v-if="loading">
-              <td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading...</td>
+              <td colspan="8" class="px-6 py-4 text-center text-gray-500">Loading...</td>
             </tr>
             <tr v-else-if="transactions.length === 0">
-              <td colspan="7" class="px-6 py-4 text-center text-gray-500">Tidak ada data</td>
+              <td colspan="8" class="px-6 py-4 text-center text-gray-500">Tidak ada data</td>
             </tr>
             <tr v-else v-for="(transaction, index) in transactions" :key="transaction.id" class="hover:bg-gray-50">
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ (pagination.current_page - 1) * pagination.per_page + index + 1 }}</td>
@@ -89,13 +90,34 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ transaction.item?.nama_barang }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">+{{ transaction.jumlah }}</td>
               <td class="px-6 py-4 text-sm text-gray-900">{{ transaction.keterangan || '-' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <span :class="{
+                  'bg-green-100 text-green-800': transaction.status === 'aktif' || !transaction.status,
+                  'bg-red-100 text-red-800': transaction.status === 'dibatalkan',
+                  'bg-blue-100 text-blue-800': transaction.status === 'restored'
+                }" class="px-2 py-1 rounded-full text-xs font-medium">
+                  {{ getStatusText(transaction.status) }}
+                </span>
+              </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button 
-                  @click="deleteTransaction(transaction)"
-                  class="text-red-600 hover:text-red-900"
+                  v-if="transaction.status === 'dibatalkan'"
+                  @click="restoreTransaction(transaction)"
+                  class="text-green-600 hover:text-green-900"
+                  title="Pulihkan Transaksi"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                </button>
+                <button 
+                  v-else
+                  @click="cancelTransaction(transaction)"
+                  class="text-orange-600 hover:text-orange-900"
+                  title="Batalkan Transaksi"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                   </svg>
                 </button>
               </td>
@@ -256,17 +278,40 @@ export default {
       }
     },
     
-    async deleteTransaction(transaction) {
-      if (confirm(`Apakah Anda yakin ingin menghapus transaksi ini?`)) {
+    async cancelTransaction(transaction) {
+      if (confirm(`Apakah Anda yakin ingin membatalkan transaksi ini? Stok akan dikembalikan.`)) {
         try {
-          await transactionService.delete(transaction.id)
-          this.showNotification('success', 'Berhasil', 'Transaksi berhasil dihapus')
+          await transactionService.cancel(transaction.id)
+          this.showNotification('success', 'Berhasil', 'Transaksi berhasil dibatalkan dan stok telah dikembalikan')
           await this.fetchTransactions()
         } catch (error) {
-          console.error('Error deleting transaction:', error)
-          this.showNotification('error', 'Gagal', 'Gagal menghapus transaksi')
+          console.error('Error canceling transaction:', error)
+          this.showNotification('error', 'Gagal', 'Gagal membatalkan transaksi')
         }
       }
+    },
+    
+    async restoreTransaction(transaction) {
+      if (confirm(`Apakah Anda yakin ingin memulihkan transaksi ini? Stok akan disesuaikan kembali.`)) {
+        try {
+          await transactionService.restore(transaction.id)
+          this.showNotification('success', 'Berhasil', 'Transaksi berhasil dipulihkan')
+          await this.fetchTransactions()
+        } catch (error) {
+          console.error('Error restoring transaction:', error)
+          const message = error.response?.data?.message || 'Gagal memulihkan transaksi'
+          this.showNotification('error', 'Gagal', message)
+        }
+      }
+    },
+    
+    getStatusText(status) {
+      const statusMap = {
+        'aktif': 'Aktif',
+        'dibatalkan': 'Dibatalkan', 
+        'restored': 'Dipulihkan'
+      }
+      return statusMap[status] || 'Aktif'
     },
     
     sortBy(column) {

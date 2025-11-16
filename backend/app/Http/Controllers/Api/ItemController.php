@@ -71,7 +71,7 @@ class ItemController extends Controller
     
     public function getNextCode()
     {
-        $lastItem = Item::orderBy('kode_barang', 'desc')->first();
+        $lastItem = Item::withTrashed()->orderBy('kode_barang', 'desc')->first();
         
         if (!$lastItem) {
             return response()->json(['code' => 'BRG001']);
@@ -79,8 +79,13 @@ class ItemController extends Controller
         
         $lastCode = $lastItem->kode_barang;
         $number = (int) substr($lastCode, 3);
-        $nextNumber = $number + 1;
-        $nextCode = 'BRG' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        
+        do {
+            $nextNumber = $number + 1;
+            $nextCode = 'BRG' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+            $exists = Item::withTrashed()->where('kode_barang', $nextCode)->exists();
+            $number++;
+        } while ($exists);
         
         return response()->json(['code' => $nextCode]);
     }
