@@ -4,25 +4,89 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Item;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ReportController extends Controller
 {
     public function stockReport(Request $request)
     {
-        $items = Item::with('transactions')->get();
+        $query = Item::query();
         
-        $report = $items->map(function ($item) {
+        // Filter pencarian
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('kode_barang', 'like', "%{$search}%")
+                  ->orWhere('nama_barang', 'like', "%{$search}%");
+            });
+        }
+        
+        // Filter satuan
+        if ($request->has('satuan') && $request->satuan) {
+            $query->where('satuan', $request->satuan);
+        }
+        
+        // Sorting
+        $sortBy = $request->get('sort_by', 'kode_barang');
+        $sortOrder = $request->get('sort_order', 'asc');
+        
+        if (in_array($sortBy, ['kode_barang', 'nama_barang', 'satuan', 'stok_awal', 'stok_akhir'])) {
+            if (in_array($sortBy, ['stok_awal', 'stok_akhir'])) {
+                // Untuk sorting stok, kita perlu raw query
+                $query->orderByRaw($sortBy === 'stok_awal' ? "stock {$sortOrder}" : "stock {$sortOrder}");
+            } else {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+        }
+        
+        // Pagination
+        $perPage = $request->get('per_page', 10);
+        $items = $query->paginate($perPage);
+        
+        // Filter tanggal untuk perhitungan transaksi
+        $startDate = $request->start_date ? Carbon::parse($request->start_date) : null;
+        $endDate = $request->end_date ? Carbon::parse($request->end_date) : null;
+        
+        $report = $items->getCollection()->map(function ($item) use ($startDate, $endDate) {
+            // Hitung transaksi dalam periode
+            $transactionQuery = $item->transactions()->whereIn('status', ['aktif', 'restored']);
+            
+            if ($startDate && $endDate) {
+                $transactionQuery->whereBetween('tanggal_transaksi', [$startDate, $endDate]);
+            }
+            
+            $masuk = (clone $transactionQuery)->where('jenis_transaksi', 'masuk')->sum('jumlah');
+            $keluar = (clone $transactionQuery)->where('jenis_transaksi', 'keluar')->sum('jumlah');
+            
+            $stokAwal = $item->stock;
+            $stokAkhir = $stokAwal + $masuk - $keluar;
+            
+            // Status stok
+            $statusStok = 'aman';
+            if ($stokAkhir <= 0) {
+                $statusStok = 'habis';
+            } elseif ($stokAkhir <= 5) {
+                $statusStok = 'hampir habis';
+            }
+            
             return [
                 'id' => $item->id,
                 'kode_barang' => $item->kode_barang,
                 'nama_barang' => $item->nama_barang,
                 'satuan' => $item->satuan,
-                'stok_awal' => $item->stock,
-                'stok_akhir' => $item->getCurrentStock()
+                'stok_awal' => $stokAwal,
+                'total_masuk' => $masuk,
+                'total_keluar' => $keluar,
+                'stok_akhir' => $stokAkhir,
+                'status_stok' => $statusStok
             ];
         });
-
-        return response()->json($report);
+        
+        // Update collection dengan data yang sudah diproses
+        $items->setCollection($report);
+        
+        return response()->json($items);
     }
 }
