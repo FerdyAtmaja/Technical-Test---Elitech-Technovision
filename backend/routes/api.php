@@ -10,6 +10,9 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::apiResource('items', ItemController::class);
-Route::apiResource('transactions', TransactionController::class);
-Route::get('reports/stock', [ReportController::class, 'stockReport']);
+Route::middleware(['throttle:api'])->group(function () {
+    Route::apiResource('items', ItemController::class);
+    Route::apiResource('transactions', TransactionController::class);
+    Route::get('reports/stock', [ReportController::class, 'stockReport']);
+});
+

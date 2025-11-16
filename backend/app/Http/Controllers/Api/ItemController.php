@@ -15,6 +15,13 @@ class ItemController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'kode_barang' => 'required|string|unique:items,kode_barang',
+            'nama_barang' => 'required|string|max:255',
+            'satuan' => 'required|string|max:50',
+            'stock' => 'required|integer|min:0'
+        ]);
+
         $item = Item::create($request->all());
         return response()->json($item, 201);
     }
@@ -26,6 +33,13 @@ class ItemController extends Controller
 
     public function update(Request $request, Item $item)
     {
+        $request->validate([
+            'kode_barang' => 'required|string|unique:items,kode_barang,' . $item->id,
+            'nama_barang' => 'required|string|max:255',
+            'satuan' => 'required|string|max:50',
+            'stock' => 'required|integer|min:0'
+        ]);
+
         $item->update($request->all());
         return $item;
     }
