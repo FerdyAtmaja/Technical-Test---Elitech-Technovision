@@ -15,17 +15,26 @@ class Item extends Model
         'kode_barang',
         'nama_barang', 
         'satuan',
+        'stok_awal',
         'stock',
         'lock_version'
     ];
 
     protected $casts = [
+        'stok_awal' => 'integer',
         'stock' => 'integer',
         'lock_version' => 'integer'
     ];
 
     protected static function booted()
     {
+        static::creating(function ($model) {
+            // Set stok_awal = stock saat create
+            if (!$model->stok_awal && $model->stock) {
+                $model->stok_awal = $model->stock;
+            }
+        });
+
         static::created(function ($model) {
             $model->logAudit('created');
         });
@@ -46,10 +55,12 @@ class Item extends Model
 
     public function getCurrentStock()
     {
-        $masuk = $this->transactions()->where('jenis_transaksi', 'masuk')->sum('jumlah');
-        $keluar = $this->transactions()->where('jenis_transaksi', 'keluar')->sum('jumlah');
-        
-        return $this->stock + $masuk - $keluar;
+        return $this->stock;
+    }
+
+    public function getInitialStock()
+    {
+        return $this->stok_awal;
     }
 
     public function calculateStock()

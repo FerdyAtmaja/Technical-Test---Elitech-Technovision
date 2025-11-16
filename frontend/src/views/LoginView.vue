@@ -3,7 +3,9 @@
     <div class="max-w-md w-full space-y-8">
       <div>
         <div class="mx-auto h-12 w-12 flex items-center justify-center">
-          <span class="text-4xl">📦</span>
+          <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center min-w-[32px]">
+            <span class="text-white text-lg font-bold">IA</span>
+          </div>
         </div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Login ke InventoryApp

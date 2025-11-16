@@ -55,7 +55,7 @@ class TransactionController extends Controller
         // Validasi stok untuk transaksi keluar
         if ($request->jenis_transaksi === 'keluar') {
             $item = Item::find($request->item_id);
-            $currentStock = $item->getCurrentStock();
+            $currentStock = $item->stock; // Langsung dari field stock
             
             if ($currentStock <= 0) {
                 return response()->json([
@@ -96,7 +96,7 @@ class TransactionController extends Controller
         // Validasi stok untuk update transaksi keluar
         if ($request->jenis_transaksi === 'keluar') {
             $item = Item::find($request->item_id);
-            $currentStock = $item->getCurrentStock();
+            $currentStock = $item->stock;
             
             // Tambahkan kembali jumlah transaksi lama jika transaksi keluar
             if ($transaction->jenis_transaksi === 'keluar' && $transaction->item_id == $request->item_id) {

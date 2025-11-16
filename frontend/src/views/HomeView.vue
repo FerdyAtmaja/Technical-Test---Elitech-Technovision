@@ -97,7 +97,7 @@
                   <p class="text-sm text-gray-600">{{ item.kode_barang }}</p>
                 </div>
                 <div class="text-right">
-                  <p class="text-lg font-bold text-red-600">{{ item.current_stock }}</p>
+                  <p class="text-lg font-bold text-red-600">{{ item.stock }}</p>
                   <p class="text-xs text-gray-500">{{ item.satuan }}</p>
                 </div>
               </div>
@@ -192,7 +192,7 @@ export default {
         
         // Calculate stats
         this.stats.totalItems = items.length
-        this.stats.totalStock = items.reduce((sum, item) => sum + (item.current_stock || 0), 0)
+        this.stats.totalStock = items.reduce((sum, item) => sum + (item.stock || 0), 0)
         
         // Today's transactions
         const today = new Date().toISOString().split('T')[0]
@@ -200,8 +200,8 @@ export default {
           t.tanggal_transaksi === today
         ).length
         
-        // Low stock items (stock <= 10)
-        this.lowStockItems = items.filter(item => (item.current_stock || 0) <= 10)
+        // Low stock items (stock <= 10) - menggunakan field stock, bukan stok_awal
+        this.lowStockItems = items.filter(item => (item.stock || 0) <= 10)
         this.stats.lowStockCount = this.lowStockItems.length
         
         // Recent transactions

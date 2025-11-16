@@ -32,13 +32,8 @@ class ReportController extends Controller
         $sortBy = $request->get('sort_by', 'kode_barang');
         $sortOrder = $request->get('sort_order', 'asc');
         
-        if (in_array($sortBy, ['kode_barang', 'nama_barang', 'satuan', 'stok_awal', 'stok_akhir'])) {
-            if (in_array($sortBy, ['stok_awal', 'stok_akhir'])) {
-                // Untuk sorting stok, kita perlu raw query
-                $query->orderByRaw($sortBy === 'stok_awal' ? "stock {$sortOrder}" : "stock {$sortOrder}");
-            } else {
-                $query->orderBy($sortBy, $sortOrder);
-            }
+        if (in_array($sortBy, ['kode_barang', 'nama_barang', 'satuan', 'stok_awal', 'stock'])) {
+            $query->orderBy($sortBy, $sortOrder);
         }
         
         // Pagination
@@ -60,15 +55,16 @@ class ReportController extends Controller
             $masuk = (clone $transactionQuery)->where('jenis_transaksi', 'masuk')->sum('jumlah');
             $keluar = (clone $transactionQuery)->where('jenis_transaksi', 'keluar')->sum('jumlah');
             
-            $stokAwal = $item->stock;
-            $stokAkhir = $stokAwal + $masuk - $keluar;
+            // PERBAIKAN: Stok awal dari field stok_awal, stok akhir dari field stock
+            $stokAwal = $item->stok_awal;  // Dari field stok_awal
+            $stokAkhir = $item->stock;     // Dari field stock (stok saat ini)
             
-            // Status stok
+            // Status stok berdasarkan stok akhir (stok saat ini)
             $statusStok = 'aman';
             if ($stokAkhir <= 0) {
                 $statusStok = 'habis';
-            } elseif ($stokAkhir <= 5) {
-                $statusStok = 'hampir habis';
+            } elseif ($stokAkhir <= 10) {
+                $statusStok = 'menipis';
             }
             
             return [

@@ -10,11 +10,14 @@ return new class extends Migration
     {
         Schema::create('items', function (Blueprint $table) {
             $table->id();
-            $table ->string('kode_barang')->unique();
-            $table ->string('nama_barang');
-            $table ->string('satuan');
-            $table ->integer('stock')->default(0);
+            $table->string('kode_barang')->unique();
+            $table->string('nama_barang');
+            $table->string('satuan');
+            $table->integer('stok_awal')->default(0);
+            $table->integer('stock')->default(0);
+            $table->integer('lock_version')->default(0);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

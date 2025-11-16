@@ -1,24 +1,58 @@
 <template>
-  <div v-if="show" class="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+  <div v-if="show" class="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50" @click.self="$emit('close')">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto relative">
       <h3 class="text-lg font-semibold mb-4">{{ title }}</h3>
       
       <form @submit.prevent="handleSubmit">
-        <div class="mb-4">
+        <div class="mb-4 relative">
           <label class="block text-sm font-medium mb-2">Barang</label>
-          <select 
-            v-model="form.item_id" 
-            @change="onItemChange"
-            required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Pilih Barang</option>
-            <option v-for="item in items" :key="item.id" :value="item.id">
-              {{ item.kode_barang }} - {{ item.nama_barang }}
-            </option>
-          </select>
+          
+          <!-- Custom Dropdown -->
+          <div class="relative">
+            <button
+              type="button"
+              @click="toggleDropdown"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-left bg-white flex justify-between items-center"
+            >
+              <span class="truncate">
+                {{ selectedItem ? `${selectedItem.kode_barang} - ${selectedItem.nama_barang}` : 'Pilih Barang' }}
+              </span>
+              <svg class="w-4 h-4 text-gray-400" :class="{ 'rotate-180': showDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            
+            <!-- Dropdown Options -->
+            <div v-if="showDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+              <div class="p-2">
+                <input
+                  v-model="searchTerm"
+                  type="text"
+                  placeholder="Cari barang..."
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  @click.stop
+                >
+              </div>
+              <div class="max-h-48 overflow-y-auto">
+                <button
+                  v-for="item in filteredItems"
+                  :key="item.id"
+                  type="button"
+                  @click="selectItem(item)"
+                  class="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none text-sm"
+                >
+                  <div class="font-medium">{{ item.kode_barang }}</div>
+                  <div class="text-gray-600 text-xs truncate">{{ item.nama_barang }}</div>
+                </button>
+                <div v-if="filteredItems.length === 0" class="px-3 py-2 text-gray-500 text-sm">
+                  Tidak ada barang ditemukan
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div v-if="selectedItem && type === 'keluar'" class="mt-2 text-sm text-gray-600">
-            Stok tersedia: <span class="font-medium text-blue-600">{{ selectedItem.current_stock }}</span> {{ selectedItem.satuan }}
+            Stok tersedia: <span class="font-medium text-blue-600">{{ selectedItem.stock }}</span> {{ selectedItem.satuan }}
           </div>
         </div>
         
@@ -53,7 +87,7 @@
                 Sisa stok setelah keluar: <span class="font-medium">{{ remainingStock }}</span> {{ selectedItem.satuan }}
               </span>
               <span v-else class="text-red-600 font-medium">
-                ⚠️ Jumlah melebihi stok tersedia! Kekurangan: {{ form.jumlah - selectedItem.current_stock }} {{ selectedItem.satuan }}
+                ⚠️ Jumlah melebihi stok tersedia! Kekurangan: {{ form.jumlah - selectedItem.stock }} {{ selectedItem.satuan }}
               </span>
             </div>
           </div>
@@ -79,11 +113,11 @@
           </button>
           <button 
             type="submit"
-            :disabled="isStockExceeded"
+            :disabled="isStockExceeded || !selectedItem"
             :class="{
-              'bg-green-600 hover:bg-green-700': type === 'masuk' && !isStockExceeded,
-              'bg-red-600 hover:bg-red-700': type === 'keluar' && !isStockExceeded,
-              'bg-gray-400 cursor-not-allowed': isStockExceeded
+              'bg-green-600 hover:bg-green-700': type === 'masuk' && !isStockExceeded && selectedItem,
+              'bg-red-600 hover:bg-red-700': type === 'keluar' && !isStockExceeded && selectedItem,
+              'bg-gray-400 cursor-not-allowed': isStockExceeded || !selectedItem
             }"
             class="px-4 py-2 text-white rounded-md"
           >
@@ -135,7 +169,9 @@ export default {
       },
       selectedItem: null,
       dateInterval: null,
-      showConfirmation: false
+      showConfirmation: false,
+      showDropdown: false,
+      searchTerm: ''
     }
   },
   computed: {
@@ -143,11 +179,19 @@ export default {
       return this.type === 'masuk' ? 'Tambah Barang Masuk' : 'Tambah Barang Keluar'
     },
     isStockExceeded() {
-      return this.type === 'keluar' && this.selectedItem && this.form.jumlah > this.selectedItem.current_stock
+      return this.type === 'keluar' && this.selectedItem && this.form.jumlah > this.selectedItem.stock
     },
     remainingStock() {
       if (!this.selectedItem || this.type !== 'keluar') return 0
-      return Math.max(0, this.selectedItem.current_stock - this.form.jumlah)
+      return Math.max(0, this.selectedItem.stock - this.form.jumlah)
+    },
+    filteredItems() {
+      if (!this.searchTerm) return this.items || []
+      const term = this.searchTerm.toLowerCase()
+      return (this.items || []).filter(item => 
+        item.kode_barang.toLowerCase().includes(term) ||
+        item.nama_barang.toLowerCase().includes(term)
+      )
     }
   },
   watch: {
@@ -155,11 +199,13 @@ export default {
       if (newVal) {
         this.updateDateTime()
         this.dateInterval = setInterval(this.updateDateTime, 1000)
+        document.addEventListener('click', this.handleClickOutside)
       } else {
         if (this.dateInterval) {
           clearInterval(this.dateInterval)
           this.dateInterval = null
         }
+        document.removeEventListener('click', this.handleClickOutside)
         this.resetForm()
       }
     },
@@ -171,9 +217,11 @@ export default {
     if (this.dateInterval) {
       clearInterval(this.dateInterval)
     }
+    document.removeEventListener('click', this.handleClickOutside)
   },
   methods: {
     handleSubmit() {
+      if (!this.selectedItem) return
       this.showConfirmation = true
     },
     
@@ -185,6 +233,7 @@ export default {
     cancelSave() {
       this.showConfirmation = false
     },
+    
     resetForm() {
       this.form = {
         item_id: '',
@@ -194,13 +243,34 @@ export default {
         keterangan: ''
       }
       this.selectedItem = null
+      this.showDropdown = false
+      this.searchTerm = ''
     },
+    
     updateDateTime() {
       this.form.tanggal_transaksi = new Date().toISOString().split('T')[0]
     },
-    onItemChange() {
-      this.selectedItem = this.items.find(item => item.id == this.form.item_id)
+    
+    toggleDropdown() {
+      this.showDropdown = !this.showDropdown
+      if (this.showDropdown) {
+        this.searchTerm = ''
+      }
     },
+    
+    selectItem(item) {
+      this.selectedItem = item
+      this.form.item_id = item.id
+      this.showDropdown = false
+      this.searchTerm = ''
+    },
+    
+    handleClickOutside(event) {
+      if (!this.$el.contains(event.target)) {
+        this.showDropdown = false
+      }
+    },
+    
     onJumlahInput(event) {
       const value = event.target.value.replace(/[^0-9]/g, '')
       const numValue = value ? parseInt(value) : 0

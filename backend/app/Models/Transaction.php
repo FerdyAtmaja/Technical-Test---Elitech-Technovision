@@ -66,7 +66,10 @@ class Transaction extends Model
             if ($this->jenis_transaksi === 'masuk') {
                 $item->increment('stock', $this->jumlah);
             } else {
-                $item->decrement('stock', $this->jumlah);
+                // Validasi stok sebelum mengurangi
+                if ($item->stock >= $this->jumlah) {
+                    $item->decrement('stock', $this->jumlah);
+                }
             }
         }
     }
@@ -76,7 +79,10 @@ class Transaction extends Model
         $item = $this->item;
         if ($this->status === 'aktif' || $this->status === 'restored') {
             if ($this->jenis_transaksi === 'masuk') {
-                $item->decrement('stock', $this->jumlah);
+                // Validasi stok sebelum mengurangi
+                if ($item->stock >= $this->jumlah) {
+                    $item->decrement('stock', $this->jumlah);
+                }
             } else {
                 $item->increment('stock', $this->jumlah);
             }
@@ -88,7 +94,10 @@ class Transaction extends Model
         if ($this->status === 'aktif' || $this->status === 'restored') {
             $item = $this->item;
             if ($this->jenis_transaksi === 'masuk') {
-                $item->decrement('stock', $this->jumlah);
+                // Validasi stok sebelum mengurangi
+                if ($item->stock >= $this->jumlah) {
+                    $item->decrement('stock', $this->jumlah);
+                }
             } else {
                 $item->increment('stock', $this->jumlah);
             }
@@ -103,21 +112,22 @@ class Transaction extends Model
     public function restore()
     {
         if ($this->status === 'dibatalkan') {
+            $item = $this->item;
+            
             // Validasi stok untuk transaksi keluar yang di-restore
             if ($this->jenis_transaksi === 'keluar') {
-                $item = $this->item;
-                $currentStock = $item->getCurrentStock();
-                
-                if ($this->jumlah > $currentStock) {
-                    throw new \Exception('Stok tidak mencukupi untuk restore transaksi. Stok tersedia: ' . $currentStock);
+                if ($this->jumlah > $item->stock) {
+                    throw new \Exception('Stok tidak mencukupi untuk restore transaksi. Stok tersedia: ' . $item->stock);
                 }
             }
             
-            $item = $this->item;
             if ($this->jenis_transaksi === 'masuk') {
                 $item->increment('stock', $this->jumlah);
             } else {
-                $item->decrement('stock', $this->jumlah);
+                // Validasi stok sebelum mengurangi
+                if ($item->stock >= $this->jumlah) {
+                    $item->decrement('stock', $this->jumlah);
+                }
             }
             $this->update([
                 'status' => 'restored',

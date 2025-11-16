@@ -10,7 +10,6 @@ class ItemSeeder extends Seeder
     public function run(): void
     {
         $items = [
-            // Alat Elektromedis (10 items)
             ['nama_barang' => 'Tensimeter Digital', 'satuan' => 'pcs', 'stock' => 15],
             ['nama_barang' => 'Termometer Infrared', 'satuan' => 'pcs', 'stock' => 25],
             ['nama_barang' => 'Pulse Oximeter', 'satuan' => 'pcs', 'stock' => 30],
@@ -21,8 +20,6 @@ class ItemSeeder extends Seeder
             ['nama_barang' => 'ECG Machine', 'satuan' => 'pcs', 'stock' => 5],
             ['nama_barang' => 'Infusion Pump', 'satuan' => 'pcs', 'stock' => 10],
             ['nama_barang' => 'Suction Unit', 'satuan' => 'pcs', 'stock' => 7],
-            
-            // Alat Elektronik (10 items)
             ['nama_barang' => 'Laptop Dell Inspiron', 'satuan' => 'pcs', 'stock' => 15],
             ['nama_barang' => 'Tablet Samsung', 'satuan' => 'pcs', 'stock' => 20],
             ['nama_barang' => 'Smartphone iPhone', 'satuan' => 'pcs', 'stock' => 12],

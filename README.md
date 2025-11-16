@@ -30,7 +30,8 @@ Aplikasi web untuk mengelola inventori barang dengan fitur transaksi masuk dan k
 - `kode_barang` - Kode unik barang (VARCHAR)
 - `nama_barang` - Nama barang (VARCHAR)
 - `satuan` - Satuan barang (VARCHAR) - pcs, kg, liter, dll
-- `current_stock` - Stok saat ini (INTEGER)
+- `stok_awal` - Stok awal (INTEGER)
+- `stock` - Stok saat ini (INTEGER)
 - `created_at` - Waktu dibuat
 - `updated_at` - Waktu diupdate
 
@@ -64,6 +65,7 @@ composer install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate
+php artisan db:seed
 php artisan serve
 ```
 
@@ -114,14 +116,15 @@ npm run dev         # Development server di http://localhost:5173
 ## 📊 Database Schema
 
 Database menggunakan SQLite dengan tabel utama:
-- `items` - Master data barang dengan stok
+- `items` - Master data barang dengan stok awal dan stok saat ini
 - `transactions` - Log transaksi masuk/keluar barang
 
 **Logika Bisnis:**
-- Transaksi 'masuk' menambah stok barang
-- Transaksi 'keluar' mengurangi stok barang
+- `stok_awal` - Stok awal barang (tidak berubah)
+- `stock` - Stok saat ini (update otomatis dari transaksi)
+- Transaksi 'masuk' menambah `stock`
+- Transaksi 'keluar' mengurangi `stock`
 - Validasi stok untuk mencegah stok negatif
-- Update otomatis `current_stock` setiap transaksi
 
 ## 🌐 API Endpoints
 

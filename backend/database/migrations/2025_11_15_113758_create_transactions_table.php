@@ -15,7 +15,17 @@ return new class extends Migration
             $table->date('tanggal_transaksi');
             $table->integer('jumlah');
             $table->text('keterangan')->nullable();
+            $table->enum('status', ['aktif', 'dibatalkan', 'restored'])->default('aktif');
+            $table->timestamp('canceled_at')->nullable();
+            $table->unsignedBigInteger('canceled_by')->nullable();
+            $table->timestamp('restored_at')->nullable();
+            $table->unsignedBigInteger('restored_by')->nullable();
+            $table->integer('lock_version')->default(0);
             $table->timestamps();
+            $table->softDeletes();
+            
+            $table->foreign('canceled_by')->references('id')->on('users');
+            $table->foreign('restored_by')->references('id')->on('users');
         });
     }
 

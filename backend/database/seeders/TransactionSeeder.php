@@ -11,81 +11,57 @@ class TransactionSeeder extends Seeder
     public function run(): void
     {
         $items = Item::all();
-        
-        if ($items->count() > 0) {
-            // Catat stock awal sebagai transaksi masuk
-            foreach ($items as $item) {
-                if ($item->stock > 0) {
-                    Transaction::create([
-                        'item_id' => $item->id,
-                        'jenis_transaksi' => 'masuk',
-                        'tanggal_transaksi' => now()->subDays(100),
-                        'jumlah' => $item->stock,
-                        'keterangan' => 'Stock Awal'
-                    ]);
-                }
-            }
-            
-            // Buat banyak transaksi masuk untuk semua item
-            foreach ($items as $item) {
-                for ($i = 0; $i < rand(3, 6); $i++) {
-                    Transaction::create([
-                        'item_id' => $item->id,
-                        'jenis_transaksi' => 'masuk',
-                        'tanggal_transaksi' => now()->subDays(rand(30, 90)),
-                        'jumlah' => rand(10, 100),
-                        'keterangan' => $this->getRandomIncomingReason()
-                    ]);
-                }
-            }
-            
-            // Buat 150 transaksi keluar dengan validasi stok
-            $createdOut = 0;
-            $attempts = 0;
-            while ($createdOut < 150 && $attempts < 500) {
-                $item = $items->random();
-                $stokTersedia = $item->calculateStock();
-                
-                if ($stokTersedia > 0) {
-                    $jumlahKeluar = rand(1, min(15, $stokTersedia));
-                    Transaction::create([
-                        'item_id' => $item->id,
-                        'jenis_transaksi' => 'keluar',
-                        'tanggal_transaksi' => now()->subDays(rand(1, 60)),
-                        'jumlah' => $jumlahKeluar,
-                        'keterangan' => $this->getRandomOutgoingReason()
-                    ]);
-                    $createdOut++;
-                }
-                $attempts++;
+
+        $keteranganMasuk = [
+            'Pembelian rutin bulanan',
+            'Restok barang habis',
+            'Pengadaan dari supplier',
+            'Pembelian darurat',
+            'Stok tambahan',
+            'Pengisian ulang inventory',
+            'Pembelian bulk',
+            'Restok mingguan'
+        ];
+
+        $keteranganKeluar = [
+            'Penggunaan operasional',
+            'Distribusi ke cabang',
+            'Pemakaian harian',
+            'Kebutuhan proyek',
+            'Konsumsi rutin',
+            'Penggunaan maintenance',
+            'Alokasi departemen',
+            'Pemakaian darurat'
+        ];
+
+        foreach ($items as $item) {
+
+            // 1. TRANSAKSI MASUK
+            $qtyIn = rand(5, 20);
+
+            Transaction::create([
+                'item_id' => $item->id,
+                'jenis_transaksi' => 'masuk',
+                'jumlah' => $qtyIn,
+                'tanggal_transaksi' => now()->subDays(rand(5, 20)),
+                'keterangan' => $keteranganMasuk[array_rand($keteranganMasuk)],
+                'status' => 'aktif'
+            ]);
+
+            // 2. TRANSAKSI KELUAR (untuk beberapa item agar ada yang stok menipis)
+            if (rand(1, 3) === 1) { // 1/3 kemungkinan ada transaksi keluar
+                $maxOut = max(1, $item->stock - rand(1, 5));
+                $qtyOut = rand(1, $maxOut);
+
+                Transaction::create([
+                    'item_id' => $item->id,
+                    'jenis_transaksi' => 'keluar',
+                    'jumlah' => $qtyOut,
+                    'tanggal_transaksi' => now()->subDays(rand(1, 4)),
+                    'keterangan' => $keteranganKeluar[array_rand($keteranganKeluar)],
+                    'status' => 'aktif'
+                ]);
             }
         }
-    }
-    
-    private function getRandomIncomingReason(): string
-    {
-        $reasons = [
-            'Pembelian dari supplier utama',
-            'Restok barang habis',
-            'Pembelian bulk order',
-            'Pengadaan barang baru',
-            'Pembelian dari distributor',
-            'Restok inventory bulanan'
-        ];
-        return $reasons[array_rand($reasons)];
-    }
-    
-    private function getRandomOutgoingReason(): string
-    {
-        $reasons = [
-            'Penjualan ke customer',
-            'Penggunaan internal',
-            'Distribusi ke cabang',
-            'Penjualan online',
-            'Penjualan retail',
-            'Konsumsi kantor',
-            'Peminjaman departemen'
-        ];
-        return $reasons[array_rand($reasons)];
     }
 }

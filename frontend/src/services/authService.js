@@ -2,18 +2,6 @@ import axios from 'axios'
 
 const API_URL = 'http://localhost:8000/api'
 
-// Add response interceptor to handle 401 errors
-axios.interceptors.response.use(
-  response => response,
-  error => {
-    if (error.response?.status === 401) {
-      authService.logout()
-      window.location.href = '/login'
-    }
-    return Promise.reject(error)
-  }
-)
-
 const authService = {
   async login(credentials) {
     try {
@@ -76,5 +64,24 @@ const token = authService.getToken()
 if (token) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 }
+
+// Add response interceptor to handle 401 errors
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      // Clear auth data
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      delete axios.defaults.headers.common['Authorization']
+      
+      // Only redirect if not already on login page
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
 
 export default authService

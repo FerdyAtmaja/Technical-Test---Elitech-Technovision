@@ -26,7 +26,7 @@ class ItemController extends Controller
         $sortBy = $request->get('sort_by', 'id');
         $sortOrder = $request->get('sort_order', 'asc');
         
-        if (in_array($sortBy, ['id', 'kode_barang', 'nama_barang', 'satuan', 'stock'])) {
+        if (in_array($sortBy, ['id', 'kode_barang', 'nama_barang', 'satuan', 'stock', 'stok_awal'])) {
             $query->orderBy($sortBy, $sortOrder);
         }
         
@@ -34,9 +34,9 @@ class ItemController extends Controller
         $perPage = $request->get('per_page', 10);
         $items = $query->paginate($perPage);
         
-        // Add current_stock to each item
+        // Add current_stock alias
         $items->getCollection()->transform(function ($item) {
-            $item->current_stock = $item->getCurrentStock();
+            $item->current_stock = $item->stock;
             return $item;
         });
         
@@ -56,11 +56,13 @@ class ItemController extends Controller
         $data['satuan'] = strtolower($data['satuan']);
         
         $item = Item::create($data);
+        $item->current_stock = $item->stock;
         return response()->json($item, 201);
     }
 
     public function show(Item $item)
     {
+        $item->current_stock = $item->stock;
         return $item;
     }
 
@@ -70,6 +72,7 @@ class ItemController extends Controller
             'kode_barang' => 'required|string|unique:items,kode_barang,' . $item->id,
             'nama_barang' => 'required|string|max:255',
             'satuan' => 'required|string|max:50',
+            'stok_awal' => 'nullable|integer|min:0',
             'stock' => 'required|integer|min:0'
         ]);
 
@@ -77,6 +80,7 @@ class ItemController extends Controller
         $data['satuan'] = strtolower($data['satuan']);
         
         $item->update($data);
+        $item->current_stock = $item->stock;
         return $item;
     }
 
