@@ -32,7 +32,7 @@ class ReportController extends Controller
         $sortBy = $request->get('sort_by', 'kode_barang');
         $sortOrder = $request->get('sort_order', 'asc');
         
-        if (in_array($sortBy, ['kode_barang', 'nama_barang', 'satuan', 'stok_awal', 'stock'])) {
+        if (in_array($sortBy, ['kode_barang', 'nama_barang', 'satuan', 'stock_awal', 'stock'])) {
             $query->orderBy($sortBy, $sortOrder);
         }
         
@@ -55,8 +55,8 @@ class ReportController extends Controller
             $masuk = (clone $transactionQuery)->where('jenis_transaksi', 'masuk')->sum('jumlah');
             $keluar = (clone $transactionQuery)->where('jenis_transaksi', 'keluar')->sum('jumlah');
             
-            // PERBAIKAN: Stok awal dari field stok_awal, stok akhir dari field stock
-            $stokAwal = $item->stok_awal;  // Dari field stok_awal
+            // PERBAIKAN: Stok awal dari field stock_awal, stok akhir dari field stock
+            $stokAwal = $item->stock_awal;  // Dari field stock_awal
             $stokAkhir = $item->stock;     // Dari field stock (stok saat ini)
             
             // Status stok berdasarkan stok akhir (stok saat ini)
@@ -72,7 +72,7 @@ class ReportController extends Controller
                 'kode_barang' => $item->kode_barang,
                 'nama_barang' => $item->nama_barang,
                 'satuan' => $item->satuan,
-                'stok_awal' => $stokAwal,
+                'stock_awal' => $stokAwal,
                 'total_masuk' => $masuk,
                 'total_keluar' => $keluar,
                 'stok_akhir' => $stokAkhir,

@@ -22,10 +22,9 @@ return new class extends Migration
             $table->unsignedBigInteger('restored_by')->nullable();
             $table->integer('lock_version')->default(0);
             $table->timestamps();
-            $table->softDeletes();
             
-            $table->foreign('canceled_by')->references('id')->on('users');
-            $table->foreign('restored_by')->references('id')->on('users');
+            $table->foreign('canceled_by')->references('id')->on('users')->onDelete('set null');
+            $table->foreign('restored_by')->references('id')->on('users')->onDelete('set null');
         });
     }
 

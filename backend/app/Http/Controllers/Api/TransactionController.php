@@ -11,7 +11,7 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Transaction::with('item');
+        $query = Transaction::with(['item', 'canceledBy:id,name', 'restoredBy:id,name']);
         
         // Search
         if ($request->has('search') && $request->search) {
@@ -74,12 +74,12 @@ class TransactionController extends Controller
         $data['status'] = $data['status'] ?? 'aktif';
         
         $transaction = Transaction::create($data);
-        return response()->json($transaction->load('item'), 201);
+        return response()->json($transaction->load(['item', 'canceledBy:id,name', 'restoredBy:id,name']), 201);
     }
 
     public function show(Transaction $transaction)
     {
-        return $transaction->load('item');
+        return $transaction->load(['item', 'canceledBy:id,name', 'restoredBy:id,name']);
     }
 
     public function update(Request $request, Transaction $transaction)
@@ -111,7 +111,7 @@ class TransactionController extends Controller
         }
 
         $transaction->update($request->all());
-        return $transaction->load('item');
+        return $transaction->load(['item', 'canceledBy:id,name', 'restoredBy:id,name']);
     }
 
     public function destroy(Transaction $transaction)
@@ -132,7 +132,7 @@ class TransactionController extends Controller
         
         return response()->json([
             'message' => 'Transaksi berhasil dibatalkan',
-            'data' => $transaction->load('item')
+            'data' => $transaction->load(['item', 'canceledBy:id,name', 'restoredBy:id,name'])
         ]);
     }
 
@@ -149,7 +149,7 @@ class TransactionController extends Controller
             
             return response()->json([
                 'message' => 'Transaksi berhasil dipulihkan',
-                'data' => $transaction->load('item')
+                'data' => $transaction->load(['item', 'canceledBy:id,name', 'restoredBy:id,name'])
             ]);
         } catch (\Exception $e) {
             return response()->json([

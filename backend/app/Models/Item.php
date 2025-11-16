@@ -15,13 +15,16 @@ class Item extends Model
         'kode_barang',
         'nama_barang', 
         'satuan',
-        'stok_awal',
+        'stock_awal',
         'stock',
+        'created_by',
+        'updated_by',
+        'deleted_by',
         'lock_version'
     ];
 
     protected $casts = [
-        'stok_awal' => 'integer',
+        'stock_awal' => 'integer',
         'stock' => 'integer',
         'lock_version' => 'integer'
     ];
@@ -29,9 +32,12 @@ class Item extends Model
     protected static function booted()
     {
         static::creating(function ($model) {
-            // Set stok_awal = stock saat create
-            if (!$model->stok_awal && $model->stock) {
-                $model->stok_awal = $model->stock;
+            // Set created_by saat create
+            $model->created_by = auth()->id();
+            
+            // Set stock_awal = stock saat create
+            if (!$model->stock_awal && $model->stock) {
+                $model->stock_awal = $model->stock;
             }
         });
 
@@ -39,8 +45,17 @@ class Item extends Model
             $model->logAudit('created');
         });
 
+        static::updating(function ($model) {
+            $model->updated_by = auth()->id();
+        });
+
         static::updated(function ($model) {
             $model->logAudit('updated');
+        });
+
+        static::deleting(function ($model) {
+            $model->deleted_by = auth()->id();
+            $model->save();
         });
 
         static::deleted(function ($model) {
@@ -53,6 +68,21 @@ class Item extends Model
         return $this->hasMany(Transaction::class);
     }
 
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function getCurrentStock()
     {
         return $this->stock;
@@ -60,7 +90,7 @@ class Item extends Model
 
     public function getInitialStock()
     {
-        return $this->stok_awal;
+        return $this->stock_awal;
     }
 
     public function calculateStock()

@@ -27,7 +27,7 @@ class ReportTest extends TestCase
         $response->assertStatus(200)
                  ->assertJsonFragment([
                      'nama_barang' => 'Test Item',
-                     'stok_awal' => 10
+                     'stock_awal' => 10
                  ]);
     }
 

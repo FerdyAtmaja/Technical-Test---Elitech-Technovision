@@ -200,7 +200,7 @@ export default {
           t.tanggal_transaksi === today
         ).length
         
-        // Low stock items (stock <= 10) - menggunakan field stock, bukan stok_awal
+        // Low stock items (stock <= 10) - menggunakan field stock, bukan stock_awal
         this.lowStockItems = items.filter(item => (item.stock || 0) <= 10)
         this.stats.lowStockCount = this.lowStockItems.length
         

@@ -10,7 +10,7 @@ class ItemController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Item::query();
+        $query = Item::with(['createdBy:id,name', 'updatedBy:id,name', 'deletedBy:id,name']);
         
         // Search
         if ($request->has('search') && $request->search) {
@@ -26,7 +26,7 @@ class ItemController extends Controller
         $sortBy = $request->get('sort_by', 'id');
         $sortOrder = $request->get('sort_order', 'asc');
         
-        if (in_array($sortBy, ['id', 'kode_barang', 'nama_barang', 'satuan', 'stock', 'stok_awal'])) {
+        if (in_array($sortBy, ['id', 'kode_barang', 'nama_barang', 'satuan', 'stock', 'stock_awal'])) {
             $query->orderBy($sortBy, $sortOrder);
         }
         
@@ -56,12 +56,14 @@ class ItemController extends Controller
         $data['satuan'] = strtolower($data['satuan']);
         
         $item = Item::create($data);
+        $item->load(['createdBy:id,name', 'updatedBy:id,name', 'deletedBy:id,name']);
         $item->current_stock = $item->stock;
         return response()->json($item, 201);
     }
 
     public function show(Item $item)
     {
+        $item->load(['createdBy:id,name', 'updatedBy:id,name', 'deletedBy:id,name']);
         $item->current_stock = $item->stock;
         return $item;
     }
@@ -72,7 +74,7 @@ class ItemController extends Controller
             'kode_barang' => 'required|string|unique:items,kode_barang,' . $item->id,
             'nama_barang' => 'required|string|max:255',
             'satuan' => 'required|string|max:50',
-            'stok_awal' => 'nullable|integer|min:0',
+            'stock_awal' => 'nullable|integer|min:0',
             'stock' => 'required|integer|min:0'
         ]);
 
@@ -80,6 +82,7 @@ class ItemController extends Controller
         $data['satuan'] = strtolower($data['satuan']);
         
         $item->update($data);
+        $item->load(['createdBy:id,name', 'updatedBy:id,name', 'deletedBy:id,name']);
         $item->current_stock = $item->stock;
         return $item;
     }

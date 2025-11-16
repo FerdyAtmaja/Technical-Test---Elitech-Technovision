@@ -122,14 +122,14 @@
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Satuan</th>
               <th 
-                @click="sortBy('stok_awal')"
+                @click="sortBy('stock_awal')"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
               >
                 <div class="flex items-center gap-1">
                   Stok Awal
                   <svg class="w-3 h-3" :class="{
-                    'text-blue-600': sorting.sort_by === 'stok_awal',
-                    'rotate-180': sorting.sort_by === 'stok_awal' && sorting.sort_order === 'desc'
+                    'text-blue-600': sorting.sort_by === 'stock_awal',
+                    'rotate-180': sorting.sort_by === 'stock_awal' && sorting.sort_order === 'desc'
                   }" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
                   </svg>
@@ -166,7 +166,7 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ report.kode_barang }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ report.nama_barang }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ report.satuan }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ report.stok_awal }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ report.stock_awal }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">+{{ report.total_masuk }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">-{{ report.total_keluar }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ report.stok_akhir }}</td>

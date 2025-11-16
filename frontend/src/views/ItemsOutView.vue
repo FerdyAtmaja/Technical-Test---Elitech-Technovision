@@ -85,15 +85,16 @@
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Info Aksi</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr v-if="loading">
-              <td colspan="8" class="px-6 py-4 text-center text-gray-500">Loading...</td>
+              <td colspan="9" class="px-6 py-4 text-center text-gray-500">Loading...</td>
             </tr>
             <tr v-else-if="transactions.length === 0">
-              <td colspan="8" class="px-6 py-4 text-center text-gray-500">Tidak ada data</td>
+              <td colspan="9" class="px-6 py-4 text-center text-gray-500">Tidak ada data</td>
             </tr>
             <tr v-else v-for="(transaction, index) in transactions" :key="transaction.id" class="hover:bg-gray-50">
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ (pagination.current_page - 1) * pagination.per_page + index + 1 }}</td>
@@ -110,6 +111,19 @@
                 }" class="px-2 py-1 rounded-full text-xs font-medium">
                   {{ getStatusText(transaction.status) }}
                 </span>
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-900">
+                <div v-if="transaction.status === 'dibatalkan' && transaction.canceled_at" class="text-xs">
+                  <div class="text-red-600">Dibatalkan:</div>
+                  <div>{{ formatDateTime(transaction.canceled_at) }}</div>
+                  <div v-if="transaction.canceled_by">oleh: {{ transaction.canceled_by.name }}</div>
+                </div>
+                <div v-else-if="transaction.status === 'restored' && transaction.restored_at" class="text-xs">
+                  <div class="text-blue-600">Dipulihkan:</div>
+                  <div>{{ formatDateTime(transaction.restored_at) }}</div>
+                  <div v-if="transaction.restored_by">oleh: {{ transaction.restored_by.name }}</div>
+                </div>
+                <div v-else class="text-gray-400 text-xs">-</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div v-if="!canPerformAction(transaction)" class="relative group">
@@ -439,6 +453,10 @@ export default {
     
     formatDate(date) {
       return new Date(date).toLocaleDateString('id-ID')
+    },
+    
+    formatDateTime(datetime) {
+      return new Date(datetime).toLocaleString('id-ID')
     },
     
     showNotification(type, title, message) {
