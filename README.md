@@ -17,7 +17,6 @@ Aplikasi web untuk mengelola inventori barang dengan fitur transaksi masuk dan k
 - ✅ Transaksi barang keluar dengan validasi stok
 - ✅ Riwayat transaksi
 - ✅ Dashboard
-- ✅ Responsive design
 
 ## 🗄️ Entity Relationship Diagram (ERD)
 
