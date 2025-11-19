@@ -3,12 +3,19 @@
 namespace Tests\Feature;
 
 use App\Models\Item;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ItemTest extends TestCase
 {
     use RefreshDatabase;
+    
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(User::factory()->create());
+    }
 
     public function test_can_get_all_items()
     {
@@ -17,7 +24,13 @@ class ItemTest extends TestCase
         $response = $this->getJson('/api/items');
 
         $response->assertStatus(200)
-                 ->assertJsonCount(3);
+                 ->assertJsonStructure([
+                     'data',
+                     'current_page',
+                     'per_page',
+                     'total'
+                 ])
+                 ->assertJsonCount(3, 'data');
     }
 
     public function test_can_create_item()
@@ -33,7 +46,7 @@ class ItemTest extends TestCase
 
         $response->assertStatus(201)
                  ->assertJsonStructure([
-                     'id', 'kode_barang', 'nama_barang', 'satuan', 'stock'
+                     'id', 'kode_barang', 'nama_barang', 'satuan', 'stock', 'stock_awal'
                  ]);
     }
 
@@ -68,6 +81,6 @@ class ItemTest extends TestCase
         $response = $this->deleteJson("/api/items/{$item->id}");
 
         $response->assertStatus(204);
-        $this->assertDatabaseMissing('items', ['id' => $item->id]);
+        $this->assertSoftDeleted('items', ['id' => $item->id]);
     }
 }

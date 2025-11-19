@@ -14,7 +14,7 @@ class TransactionModelTest extends TestCase
     public function test_fillable_fields_are_correct()
     {
         $transaction = new Transaction();
-        $expected = ['item_id', 'jenis_transaksi', 'tanggal_transaksi', 'jumlah', 'keterangan'];
+        $expected = ['item_id', 'jenis_transaksi', 'tanggal_transaksi', 'jumlah', 'keterangan', 'status', 'canceled_at', 'canceled_by', 'restored_at', 'restored_by', 'lock_version'];
         
         $this->assertEquals($expected, $transaction->getFillable());
     }
@@ -40,7 +40,7 @@ class TransactionModelTest extends TestCase
     public function test_casts_are_correct()
     {
         $transaction = new Transaction();
-        $expected = ['id' => 'int', 'tanggal_transaksi' => 'date', 'jumlah' => 'integer'];
+        $expected = ['id' => 'int', 'tanggal_transaksi' => 'date', 'jumlah' => 'integer', 'canceled_at' => 'datetime', 'restored_at' => 'datetime', 'lock_version' => 'integer'];
         
         $this->assertEquals($expected, $transaction->getCasts());
     }

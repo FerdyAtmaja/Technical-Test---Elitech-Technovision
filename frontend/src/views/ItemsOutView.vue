@@ -304,8 +304,9 @@ export default {
     
     async fetchItems() {
       try {
-        const response = await itemService.getAllForTransaction()
-        this.items = response.data.data
+        // Get all items for dropdown - use large per_page to get all items
+        const response = await itemService.getAll({ per_page: 1000 })
+        this.items = response.data.data || response.data
       } catch (error) {
         console.error('Error fetching items:', error)
       }
@@ -325,6 +326,8 @@ export default {
         this.showNotification('success', 'Berhasil', 'Transaksi barang keluar berhasil ditambahkan')
         this.closeModal()
         await this.fetchTransactions()
+        // Emit event to refresh other components
+        this.$root.$emit('data-changed', { type: 'transaction', action: 'created' })
       } catch (error) {
         console.error('Error saving transaction:', error)
         this.showNotification('error', 'Gagal', 'Gagal menyimpan transaksi')
@@ -353,6 +356,8 @@ export default {
           this.showNotification('success', 'Berhasil', 'Transaksi berhasil dipulihkan')
         }
         await this.fetchTransactions()
+        // Emit event to refresh other components
+        this.$root.$emit('data-changed', { type: 'transaction', action: this.confirmationType })
       } catch (error) {
         console.error('Error with transaction action:', error)
         const message = error.response?.data?.message || `Gagal ${this.confirmationType === 'cancel' ? 'membatalkan' : 'memulihkan'} transaksi`

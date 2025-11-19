@@ -48,7 +48,7 @@ class TransactionSeeder extends Seeder
                 'status' => 'aktif'
             ]);
 
-            // 2. TRANSAKSI KELUAR (untuk beberapa item agar ada yang stok menipis)
+            // TRANSAKSI KELUAR (untuk beberapa item agar ada yang stok menipis)
             if (rand(1, 3) === 1) { // 1/3 kemungkinan ada transaksi keluar
                 $maxOut = max(1, $item->stock - rand(1, 5));
                 $qtyOut = rand(1, $maxOut);

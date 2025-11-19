@@ -2,7 +2,10 @@
 
 Aplikasi web untuk mengelola inventori barang dengan fitur transaksi masuk dan keluar barang.
 
-## 🏗️ Arsitektur Sistem
+# Dokumentasi Project
+[Kunjungi Dokumentasi Project](https://drive.google.com/file/d/1dNexB4WNmeXppLggGqF6FOVUAU_w1vGJ/view?usp=sharing)
+
+## Arsitektur Sistem
 
 - **Backend**: Laravel 12 (PHP 8.2+)
 - **Frontend**: Vue.js 3 + Vite
@@ -10,15 +13,15 @@ Aplikasi web untuk mengelola inventori barang dengan fitur transaksi masuk dan k
 - **Styling**: Tailwind CSS
 - **State Management**: Pinia
 
-## 📋 Fitur Utama
+## Fitur Utama
 
-- ✅ Manajemen data barang (CRUD)
-- ✅ Transaksi barang masuk
-- ✅ Transaksi barang keluar dengan validasi stok
-- ✅ Riwayat transaksi
-- ✅ Dashboard
+- Manajemen data barang (CRUD)
+- Transaksi barang masuk
+- Transaksi barang keluar dengan validasi stok
+- Riwayat transaksi
+- Dashboard
 
-## 🗄️ Entity Relationship Diagram (ERD)
+## Entity Relationship Diagram (ERD)
 
 ![ERD](docs/erd.jpeg)
 
@@ -73,7 +76,7 @@ Aplikasi web untuk mengelola inventori barang dengan fitur transaksi masuk dan k
   - `items.updated_by` → `users.id`
   - `items.deleted_by` → `users.id`
 
-## 🚀 Instalasi & Setup
+## Instalasi & Setup
 
 ### Prasyarat
 - PHP 8.2+
@@ -99,13 +102,13 @@ npm install
 npm run dev
 ```
 
-## 🔐 Demo Accounts
+## Demo Accounts
 
 **Admin**: admin@inventory.com / admin123  
 **Manager**: manager@inventory.com / manager123  
 **Staff**: staff@inventory.com / staff123
 
-## 📁 Struktur Proyek
+## Struktur Proyek
 
 ```
 ├── backend/           # Laravel API
@@ -122,7 +125,7 @@ npm run dev
 └── database.sql      # Database schema
 ```
 
-## 🔧 Development
+## Development
 
 ### Backend
 ```bash
@@ -136,7 +139,7 @@ cd frontend
 npm run dev         # Development server di http://localhost:5173
 ```
 
-## 📊 Database Schema
+## Database Schema
 
 Database menggunakan SQLite dengan tabel utama:
 - `items` - Master data barang dengan stok awal dan stok saat ini
@@ -149,7 +152,7 @@ Database menggunakan SQLite dengan tabel utama:
 - Transaksi 'keluar' mengurangi `stock`
 - Validasi stok untuk mencegah stok negatif
 
-## 🌐 API Endpoints
+## API Endpoints
 
 **Items (Barang)**
 - `GET /api/items` - Daftar barang
@@ -173,19 +176,19 @@ Database menggunakan SQLite dengan tabel utama:
 - `POST /api/logout` - Logout pengguna
 - `GET /api/me` - Data pengguna saat ini
 
-## 🔄 Roadmap Pengembangan
+## Roadmap Pengembangan
 
-### 🎯 Priority 1: Role-Based Access Control (RBAC)
+### Priority 1: Role-Based Access Control (RBAC)
 - **Status**: Role tersedia, implementasi middleware & policy needed
 - **Roles**: Admin (full access), Manager (CRUD items + reports), Staff (view items + transactions)
 - **Impact**: Security & user management
 
-### 📊 Priority 2: Dashboard Audit Log  
+### Priority 2: Dashboard Audit Log  
 - **Status**: Model tersedia, UI dashboard needed
 - **Features**: Activity monitoring, filtering, export reports
 - **Impact**: Compliance & monitoring
 
-### 🚀 Priority 3: Enhancements
+### Priority 3: Enhancements
 **Security & Performance**
 - API rate limiting & input sanitization
 - Database indexing & soft delete recovery

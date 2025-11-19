@@ -35,8 +35,13 @@ class TransactionController extends Controller
             $query->orderBy($sortBy, $sortOrder);
         }
         
-        // Pagination
+        // Pagination - allow larger per_page for dashboard
         $perPage = $request->get('per_page', 10);
+        
+        // Limit max per_page to prevent memory issues
+        if ($perPage > 1000) {
+            $perPage = 1000;
+        }
         
         return $query->paginate($perPage);
     }

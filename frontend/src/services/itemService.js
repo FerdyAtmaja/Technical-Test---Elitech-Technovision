@@ -33,9 +33,5 @@ export default {
   
   getUnits() {
     return axios.get(`${API_URL}/items-units`)
-  },
-  
-  getAllForTransaction() {
-    return axios.get(`${API_URL}/items`, { params: { for_transaction: true } })
   }
 }

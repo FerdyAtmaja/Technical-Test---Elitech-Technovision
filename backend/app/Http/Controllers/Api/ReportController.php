@@ -55,9 +55,8 @@ class ReportController extends Controller
             $masuk = (clone $transactionQuery)->where('jenis_transaksi', 'masuk')->sum('jumlah');
             $keluar = (clone $transactionQuery)->where('jenis_transaksi', 'keluar')->sum('jumlah');
             
-            // PERBAIKAN: Stok awal dari field stock_awal, stok akhir dari field stock
-            $stokAwal = $item->stock_awal;  // Dari field stock_awal
-            $stokAkhir = $item->stock;     // Dari field stock (stok saat ini)
+            $stokAwal = $item->stock_awal;
+            $stokAkhir = $item->stock;
             
             // Status stok berdasarkan stok akhir (stok saat ini)
             $statusStok = 'aman';

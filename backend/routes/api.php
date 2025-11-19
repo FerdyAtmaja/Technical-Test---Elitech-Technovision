@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\AuthController;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -24,5 +25,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('transactions/{transaction}/cancel', [TransactionController::class, 'cancel']);
     Route::patch('transactions/{transaction}/restore', [TransactionController::class, 'restore']);
     Route::get('reports/stock', [ReportController::class, 'stockReport']);
+    Route::get('dashboard/stats', [DashboardController::class, 'stats']);
 });
 

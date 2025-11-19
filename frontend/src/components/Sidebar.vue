@@ -18,7 +18,7 @@
         <span v-show="!isCollapsed" class="text-sm font-medium whitespace-nowrap">Dashboard</span>
       </router-link>
       
-      <router-link to="/items" class="flex items-center gap-3 px-5 py-3.5 text-slate-400 no-underline transition-all duration-200 relative hover:bg-white/8 hover:text-slate-200 router-link-active:bg-blue-500/15 router-link-active:text-blue-400 router-link-active:before:absolute router-link-active:before:left-0 router-link-active:before:top-0 router-link-active:before:bottom-0 router-link-active:before:w-0.5 router-link-active:before:bg-blue-500">
+      <router-link to="/items" class="flex items-center gap-3 px-5 py-3.5 text-slate-400 no-underline transition-all duration-200 relative hover:bg-white/8 hover:text-slate-200" active-class="bg-blue-500/15 text-blue-400 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-blue-500">
         <svg class="w-5 h-5 min-w-[20px] stroke-[1.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
           <line x1="8" y1="21" x2="16" y2="21"/>
@@ -27,7 +27,7 @@
         <span v-show="!isCollapsed" class="text-sm font-medium whitespace-nowrap">Master Barang</span>
       </router-link>
       
-      <router-link to="/items/in" class="flex items-center gap-3 px-5 py-3.5 text-slate-400 no-underline transition-all duration-200 relative hover:bg-white/8 hover:text-slate-200 router-link-active:bg-blue-500/15 router-link-active:text-blue-400 router-link-active:before:absolute router-link-active:before:left-0 router-link-active:before:top-0 router-link-active:before:bottom-0 router-link-active:before:w-0.5 router-link-active:before:bg-blue-500">
+      <router-link to="/items/in" class="flex items-center gap-3 px-5 py-3.5 text-slate-400 no-underline transition-all duration-200 relative hover:bg-white/8 hover:text-slate-200" active-class="bg-blue-500/15 text-blue-400 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-blue-500">
         <svg class="w-5 h-5 min-w-[20px] stroke-[1.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
           <polyline points="14,2 14,8 20,8"/>

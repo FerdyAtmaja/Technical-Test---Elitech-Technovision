@@ -4,12 +4,19 @@ namespace Tests\Feature;
 
 use App\Models\Item;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class TransactionTest extends TestCase
 {
     use RefreshDatabase;
+    
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(User::factory()->create());
+    }
 
     public function test_can_get_all_transactions()
     {
@@ -18,7 +25,13 @@ class TransactionTest extends TestCase
         $response = $this->getJson('/api/transactions');
 
         $response->assertStatus(200)
-                 ->assertJsonCount(3);
+                 ->assertJsonStructure([
+                     'data',
+                     'current_page',
+                     'per_page',
+                     'total'
+                 ])
+                 ->assertJsonCount(3, 'data');
     }
 
     public function test_can_create_transaction()

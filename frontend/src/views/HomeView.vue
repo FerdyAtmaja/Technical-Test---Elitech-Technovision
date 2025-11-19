@@ -155,8 +155,7 @@
 </template>
 
 <script>
-import itemService from '@/services/itemService'
-import transactionService from '@/services/transactionService'
+import dashboardService from '@/services/dashboardService'
 
 export default {
   name: 'HomeView',
@@ -181,34 +180,39 @@ export default {
       try {
         this.loading = true
         
-        // Load all data in parallel
-        const [itemsResponse, transactionsResponse] = await Promise.all([
-          itemService.getAll(),
-          transactionService.getAll({ limit: 10 })
-        ])
+        // Use optimized dashboard endpoint
+        const response = await dashboardService.getStats()
+        const data = response.data
         
-        const items = itemsResponse.data.data || itemsResponse.data
-        const transactions = transactionsResponse.data.data || transactionsResponse.data
+        console.log('Dashboard data loaded:', data)
         
-        // Calculate stats
-        this.stats.totalItems = items.length
-        this.stats.totalStock = items.reduce((sum, item) => sum + (item.stock || 0), 0)
+        // Set stats from API response
+        this.stats = {
+          totalItems: data.stats.totalItems || 0,
+          totalStock: data.stats.totalStock || 0,
+          todayTransactions: data.stats.todayTransactions || 0,
+          lowStockCount: data.stats.lowStockCount || 0
+        }
         
-        // Today's transactions
-        const today = new Date().toISOString().split('T')[0]
-        this.stats.todayTransactions = transactions.filter(t => 
-          t.tanggal_transaksi === today
-        ).length
+        // Set low stock items
+        this.lowStockItems = data.lowStockItems || []
         
-        // Low stock items (stock <= 10) - menggunakan field stock, bukan stock_awal
-        this.lowStockItems = items.filter(item => (item.stock || 0) <= 10)
-        this.stats.lowStockCount = this.lowStockItems.length
+        // Set recent transactions
+        this.recentTransactions = data.recentTransactions || []
         
-        // Recent transactions
-        this.recentTransactions = transactions.slice(0, 8)
+        console.log('Final stats:', this.stats)
         
       } catch (error) {
         console.error('Error loading dashboard data:', error)
+        // Set default values on error
+        this.stats = {
+          totalItems: 0,
+          totalStock: 0,
+          todayTransactions: 0,
+          lowStockCount: 0
+        }
+        this.lowStockItems = []
+        this.recentTransactions = []
       } finally {
         this.loading = false
       }
